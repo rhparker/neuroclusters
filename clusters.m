@@ -8,7 +8,7 @@ f = 0.8;
 % mii = -a*mee;
 
 % clusters 
-Nc = 1;
+Nc = 4;
 mii = -1;
 mie = -1;
 mei = -((1-f)/f)*mii;
@@ -61,9 +61,9 @@ figure;
 subplot(2,2,1);
 plot(real(l), imag(l), '.r', 'MarkerSize', 30);
 subplot(2,2,2);
-plot(real(l3), imag(l), '.', 'MarkerSize', 30);
+plot(real(l3), imag(l3), '.', 'MarkerSize', 30);
 subplot(2,2,3);
-plot(t, x);
+plot(t, x(1:ne, :), '-b', t, x(ne+1:end,:), '-r');
 subplot(2,2,4);
 l4 = g*lJ/sqrt(N) - 1;
 plot(real(l4),imag(l4), '.', 'MarkerSize', 30);
