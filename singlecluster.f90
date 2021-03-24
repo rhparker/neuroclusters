@@ -33,63 +33,63 @@ SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
       NE = NDIM * 0.8
       NI = NDIM - NE
 
-      ! ! make matrix (eventually read from file?)
-      ! DO I = 1,NE
-      !       DO J = 1,NE
-      !             H(I,J) = Mee
-      !       END DO
-      !       DO J = NE+1,NDIM
-      !             H(I,J) = Mei
-      !       END DO
-      !       H(I,I) = 0
-      ! END DO
-      ! DO I = NE+1,NDIM
-      !       DO J = 1,NE
-      !             H(I,J) = Mie
-      !       END DO
-      !       DO J = NE+1,NDIM
-      !             H(I,J) = Mii
-      !       END DO
-      !       H(I,I) = 0
-      ! END DO
-
-      DO I=1,NE
-            S = 0
+      ! make matrix
+      DO I = 1,NE
             DO J = 1,NE
-                  IF (J /= I) THEN
-                        S = S + Mee*TANH( G * U(J) )
-                        ! PRINT *,J,I
-                  END IF
+                  H(I,J) = Mee
             END DO
             DO J = NE+1,NDIM
-                  S = S + Mei*TANH( G * U(J) )
+                  H(I,J) = Mei
             END DO
-            S = S / SQRT(REAL(NDIM))
-            F(I) = -U(I) + S 
+            H(I,I) = 0
       END DO
-
-      DO I=NE+1,NDIM
-            S = 0
+      DO I = NE+1,NDIM
             DO J = 1,NE
-                  S = S + Mie*TANH( G * U(J) )
+                  H(I,J) = Mie
             END DO
             DO J = NE+1,NDIM
-                  IF (J /= I) THEN
-                        S = S + Mii*TANH( G * U(J) )
-                  END IF
+                  H(I,J) = Mii
             END DO
-            S = S / SQRT(REAL(NDIM))
-            F(I) = -U(I) + S 
+            H(I,I) = 0
       END DO
 
-      ! DO I=1,NDIM
+      ! DO I=1,NE
       !       S = 0
-      !       DO J = 1,NDIM
-      !             S = S + H(I,J)*TANH( G * U(J) )
+      !       DO J = 1,NE
+      !             IF (J /= I) THEN
+      !                   S = S + Mee*TANH( G * U(J) )
+      !                   ! PRINT *,J,I
+      !             END IF
+      !       END DO
+      !       DO J = NE+1,NDIM
+      !             S = S + Mei*TANH( G * U(J) )
       !       END DO
       !       S = S / SQRT(REAL(NDIM))
       !       F(I) = -U(I) + S 
       ! END DO
+
+      ! DO I=NE+1,NDIM
+      !       S = 0
+      !       DO J = 1,NE
+      !             S = S + Mie*TANH( G * U(J) )
+      !       END DO
+      !       DO J = NE+1,NDIM
+      !             IF (J /= I) THEN
+      !                   S = S + Mii*TANH( G * U(J) )
+      !             END IF
+      !       END DO
+      !       S = S / SQRT(REAL(NDIM))
+      !       F(I) = -U(I) + S 
+      ! END DO
+
+      DO I=1,NDIM
+            S = 0
+            DO J = 1,NDIM
+                  S = S + H(I,J)*TANH( G * U(J) )
+            END DO
+            S = S / SQRT(REAL(NDIM))
+            F(I) = -U(I) + S 
+      END DO
 
 END SUBROUTINE FUNC
 !----------------------------------------------------------------------

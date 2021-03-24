@@ -81,10 +81,10 @@ plot(real(l4),imag(l4), '.', 'MarkerSize', 30);
 
 %%
 
-figure;
-plot(t, x(1:f*N,:),'--b',t,x(f*N+1:end,:),'-r','LineWidth',1);
-title('N = 200, Nci = 10, g = 10');
-xlabel('t');
+% figure;
+% plot(t, x(1:f*N,:),'--b',t,x(f*N+1:end,:),'-r','LineWidth',1);
+% title('N = 200, Nci = 10, g = 10');
+% xlabel('t');
 
 
 %% functions

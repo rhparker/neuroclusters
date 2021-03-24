@@ -18,7 +18,7 @@ SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
     IMPLICIT NONE
     INTEGER NDIM, IJAC, ICP(*)
     INTEGER I, J, K
-    INTEGER NE, NI, Nc, p
+    INTEGER NE, NI, Nc, p, N
     DOUBLE PRECISION U(NDIM), PAR(*), F(NDIM), DFDU(NDIM,NDIM), DFDP(NDIM,*)
     DOUBLE PRECISION G, Mee, Mei, Mie, Mii
     DOUBLE PRECISION frac, S
@@ -32,9 +32,11 @@ SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
 
     frac = 0.8
     Nc = 4
-    p = FLOOR( NDIM * frac / Nc)
+    p = 4
+
     NE = Nc * p
-    NI = NDIM - NE
+    NI = NDIM - Nc
+    N  = NE + NI
 
     ! make matrix
     DO I = 1, NDIM
@@ -43,38 +45,19 @@ SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
         END DO
     END DO
 
-    IF (Nc == 1) THEN
-        DO I = 1,NE
-            DO J = 1,NE
-                H(I,J) = Mee
-            END DO
-            DO J = NE+1,NDIM
-                H(I,J) = Mei
-            END DO
-            H(I,I) = 0
+    DO I = 1,Nc
+        H(I, I) = (p-1)*Mee
+        DO J = Nc+1,NDIM
+            H(I, J) = Mei
         END DO
-    ELSE
-        DO I = 1,Nc
-            DO J = 1,p
-                DO K = 1,p
-                    H( (I-1)*p + J, (I-1)*p + K) = Mee
-                END DO
-                H( (I-1)*p + J, (I-1)*p + J) = 0
-            END DO
-        END DO
-        DO I = 1,NE
-            DO J = NE+1,NDIM
-                H(I,J) = Mei
-            END DO
-        END DO
-    END IF
+    END DO
 
-    DO I = NE+1,NDIM
-        DO J = 1,NE
-                H(I,J) = Mie
+    DO I = Nc+1,NDIM
+        DO J = 1,Nc
+            H(I,J) = p*Mie
         END DO
-        DO J = NE+1,NDIM
-                H(I,J) = Mii
+        DO J = Nc+1,NDIM
+            H(I,J) = Mii
         END DO
         H(I,I) = 0
     END DO
@@ -82,7 +65,7 @@ SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
     DO I=1,NDIM
         S = 0
         DO J = 1,NDIM
-            S = S + H(I,J)*TANH( G * U(J) ) / SQRT(REAL(NDIM))
+            S = S + H(I,J)*TANH( G * U(J) ) / SQRT(REAL(N))
         END DO
         F(I) = -U(I) + S 
     END DO
@@ -94,7 +77,7 @@ SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
             IF (I == J) THEN
                 DFDU(I,J) = -1
             ELSE
-                DFDU(I, J) = (G / SQRT(REAL(NDIM))) * H(I,J) / ( COSH(G*U(J))**2 ) 
+                DFDU(I, J) = (G / SQRT(REAL(N))) * H(I,J) / ( COSH(G*U(J))**2 ) 
             END IF
         END DO
     END DO
@@ -105,7 +88,7 @@ SUBROUTINE FUNC(NDIM,U,ICP,PAR,IJAC,F,DFDU,DFDP)
         DO J = 1,NDIM
             S = S + H(I,J) * U(J) / ( COSH(G*U(J))**2 )
         END DO
-        DFDP(I,1) = S / SQRT(REAL(NDIM))
+        DFDP(I,1) = S / SQRT(REAL(N))
     END DO
 
 END SUBROUTINE FUNC
@@ -129,22 +112,18 @@ SUBROUTINE STPNT(NDIM,U,PAR,T)
     DOUBLE PRECISION U(NDIM), PAR(*), T
     DOUBLE PRECISION G, Mee, Mei, Mie, Mii
     DOUBLE PRECISION frac, a, Gstar, Xstart
-    INTEGER NE, NI, Nc, p
+    INTEGER NE, NI, Nc, p, N
 
 ! Initialize the equation parameters
     frac = 0.8
     a = frac/(1-frac)
 
     Nc = 4
-    p = FLOOR( NDIM * frac / Nc)
-    NE = Nc * p
-    NI = NDIM - NE
+    p = 4
 
-    ! Mei = -1
-    ! Mii = -1
-    ! Mie = -((1-frac)/frac)*Mii
-    ! ! Mee = -((1-frac)/frac)*Mei
-    ! Mee = -Nc*((1-frac)/frac)*Mei
+    NE = Nc * p
+    NI = NDIM - Nc
+    N  = NE + NI
 
     Mee = 0.7*Nc
     Mie = 0.7
@@ -158,38 +137,13 @@ SUBROUTINE STPNT(NDIM,U,PAR,T)
 
     G = 0.25
 
-    ! Gstar = SQRT( REAL(NDIM))  / ( (p-1)*Mee) 
+    ! Gstar = SQRT( REAL(N))  / ( (p-1)*Mee) 
     ! G = Gstar + 0.001;
     ! Xstart = SQRT( 3*(G - Gstar) / (Gstar**3) ) 
-    ! DO I = 1, NE/2
+    ! DO I = 1, Nc/2
     !     U(I) = Xstart
-    !     U(NE/2 + I) = -Xstart
+    !     U(Nc/2 + I) = -Xstart
     ! END DO
-
-    ! IF (Nc == 1) THEN
-        ! Gstar = SQRT( REAL(NDIM) ) / (a*Mee)
-        ! G = Gstar + 0.1;
-        ! Xstart = SQRT( 3*(G - Gstar) / (Gstar**3) )
-        ! ! G = 4;
-        ! DO I = 1, NI/2
-        !     U(NE + I) = Xstart
-        !     U(NE + NI/2 + I) = -Xstart
-        ! END DO
-    ! ELSE
-    !     ! Gstar = SQRT( REAL(NDIM) / ( (p-1)*Mee) )
-    !     G = 4
-    !     ! Xstart = SQRT( 3*(G - Gstar) / (Gstar**3) ) 
-    !     ! Xstart = 0.6642
-    !     ! DO I = 1, NE/2
-    !     !     U(I) = Xstart
-    !     !     U(NE/2 + I) = -Xstart
-    !     ! END DO
-    !     ! Xstart = 0.1204
-    !     ! DO I = 1, NI/2
-    !     !     U(NE + I) = Xstart
-    !     !     U(NE + NI/2 + I) = -Xstart
-    !     ! END DO
-    ! END IF
 
     PAR(1) = G
     PAR(2) = Mee

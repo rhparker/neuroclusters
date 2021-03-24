@@ -8,11 +8,17 @@ f = 0.8;
 % mii = -a*mee;
 
 % clusters 
+% Nc = 4;
+% mii = -1;
+% mie = -1;
+% mei = -((1-f)/f)*mii;
+% mee = -Nc*((1-f)/f)*mii;
+
 Nc = 4;
-mii = -1;
-mie = -1;
-mei = -((1-f)/f)*mii;
-mee = -Nc*((1-f)/f)*mii;
+mee = 0.7*Nc;
+mie = 0.7;
+mii = -a*0.7;
+mei = -a*0.7;
 
 % specify N
 N  = 20;
@@ -37,7 +43,6 @@ realvals = uniquetol(real(l));
 
 gstar = sqrt(N)/realvals(end);
 g = gstar + 0.5
-g = 5
 
 l3 = (g/sqrt(N))*l-1;
 
